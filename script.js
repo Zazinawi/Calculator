@@ -1,115 +1,126 @@
-// Initialize the display value to 0
-let displayValue = 0;
+class Calculator {
+  constructor(previousOperandTextElement, currentOperandTextElement) {
+    this.previousOperandTextElement = previousOperandTextElement
+    this.currentOperandTextElement = currentOperandTextElement
+    this.clear()
+  }
 
-// Initialize the first number to 0
-let firstNumber = 0;
+  clear() {
+    this.currentOperand = ''
+    this.previousOperand = ''
+    this.operation = undefined
+  }
 
-// Initialize the operator to an empty string
-let operator = '';
+  delete() {
+    this.currentOperand = this.currentOperand.toString().slice(0, -1)
+  }
 
-// Get the display element
-const display = document.getElementById('display-text');
+  appendNumber(number) {
+    if (number === '.' && this.currentOperand.includes('.')) return
+    this.currentOperand = this.currentOperand.toString() + number.toString()
+  }
 
-// Get all the number buttons
-const numberButtons = document.querySelectorAll('.button-number');
+  chooseOperation(operation) {
+    if (this.currentOperand === '') return
+    if (this.previousOperand !== '') {
+      this.compute()
+    }
+    this.operation = operation
+    this.previousOperand = this.currentOperand
+    this.currentOperand = ''
+  }
 
-// Add event listeners to the number buttons
-numberButtons.forEach(button => {
-  button.addEventListener('click', () => {
-    // Get the clicked button's value
-    const buttonValue = parseInt(button.textContent);
-    
-    // Update the display value
-    displayValue = (displayValue * 10) + buttonValue;
-    
-    // Update the display text
-    display.textContent = displayValue;
-  });
-});
+  compute() {
+    let computation
+    const prev = parseFloat(this.previousOperand)
+    const current = parseFloat(this.currentOperand)
+    if (isNaN(prev) || isNaN(current)) return
+    switch (this.operation) {
+      case '+':
+        computation = prev + current
+        break
+      case '-':
+        computation = prev - current
+        break
+      case '*':
+        computation = prev * current
+        break
+      case '÷':
+        computation = prev / current
+        break
+      default:
+        return
+    }
+    this.currentOperand = computation
+    this.operation = undefined
+    this.previousOperand = ''
+  }
 
-// Clear the display
-function clearDisplay() {
-  displayValue = 0;
-  display.textContent = displayValue;
-}
+  getDisplayNumber(number) {
+    const stringNumber = number.toString()
+    const integerDigits = parseFloat(stringNumber.split('.')[0])
+    const decimalDigits = stringNumber.split('.')[1]
+    let integerDisplay
+    if (isNaN(integerDigits)) {
+      integerDisplay = ''
+    } else {
+      integerDisplay = integerDigits.toLocaleString('en', { maximumFractionDigits: 0 })
+    }
+    if (decimalDigits != null) {
+      return `${integerDisplay}.${decimalDigits}`
+    } else {
+      return integerDisplay
+    }
+  }
 
-function add(num1, num2) {
-  return num1 + num2;
-}
-
-function subtract(num1, num2) {
-  return num1 - num2;
-}
-
-function multiply(num1, num2) {
-  return num1 * num2;
-}
-
-function divide(num1, num2) {
-  return num1 / num2;
-}
-
-// Define operate function
-function operate(operator, num1, num2) {
-  if (operator === '+') {
-    return add(num1, num2);
-  } else if (operator === '-') {
-    return subtract(num1, num2);
-  } else if (operator === '*') {
-    return multiply(num1, num2);
-  } else if (operator === '/') {
-    return divide(num1, num2);
-  } else {
-    return 'Invalid operator';
+  updateDisplay() {
+    this.currentOperandTextElement.innerText =
+      this.getDisplayNumber(this.currentOperand)
+    if (this.operation != null) {
+      this.previousOperandTextElement.innerText =
+        `${this.getDisplayNumber(this.previousOperand)} ${this.operation}`
+    } else {
+      this.previousOperandTextElement.innerText = ''
+    }
   }
 }
 
-// Get input elements
-const input1 = document.getElementById('input1');
-const input2 = document.getElementById('input2');
-const addButton = document.getElementById('add');
-const subtractButton = document.getElementById('subtract');
-const multiplyButton = document.getElementById('multiply');
-const divideButton = document.getElementById('divide');
-const equalsButton = document.getElementById('equals');
-const result = document.getElementById('result');
 
-// Add event listeners to buttons
-addButton.addEventListener('click', () => {
-  // Save the first number and operator
-  firstNumber = parseFloat(input1.value);
-  operator = '+';
-  
-  // Clear the display and update it with the first number
-  clearDisplay();
-  display.textContent = firstNumber;
-});
+const numberButtons = document.querySelectorAll('[data-number]')
+const operationButtons = document.querySelectorAll('[data-operation]')
+const equalsButton = document.querySelector('[data-equals]')
+const deleteButton = document.querySelector('[data-delete]')
+const allClearButton = document.querySelector('[data-all-clear]')
+const previousOperandTextElement = document.querySelector('[data-previous-operand]')
+const currentOperandTextElement = document.querySelector('[data-current-operand]')
 
-subtractButton.addEventListener('click', () => {
-  // Save the first number and operator
-  firstNumber = parseFloat(input1.value);
-  operator = '-';
-  
-  // Clear the display and update it with the first number
-  clearDisplay();
-  display.textContent = firstNumber;
-});
+const calculator = new Calculator(previousOperandTextElement, currentOperandTextElement)
 
-multiplyButton.addEventListener('click', () => {
-  // Save the first number and operator
-  firstNumber = parseFloat(input1.value);
-  operator = '*';
-  
-  // Clear the display and update it with the first number
-  clearDisplay();
-  display.textContent = firstNumber;
-});
+numberButtons.forEach(button => {
+  button.addEventListener('click', () => {
+    calculator.appendNumber(button.innerText)
+    calculator.updateDisplay()
+  })
+})
 
-divideButton.addEventListener('click', () => {
-  // Save the first number and operator
-  firstNumber = parseFloat(input1.value);
-  operator = '/';
-  
-  // Clear the display and update it with the first number
-  clearDisplay();
-  display.textContent = firstNumber
+operationButtons.forEach(button => {
+  button.addEventListener('click', () => {
+    calculator.chooseOperation(button.innerText)
+    calculator.updateDisplay()
+  })
+})
+
+equalsButton.addEventListener('click', button => {
+  calculator.compute()
+  calculator.updateDisplay()
+})
+
+allClearButton.addEventListener('click', button => {
+  calculator.clear()
+  calculator.updateDisplay()
+})
+
+deleteButton.addEventListener('click', button => {
+  calculator.delete()
+  calculator.updateDisplay()
+})
