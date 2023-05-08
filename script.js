@@ -85,7 +85,6 @@ class Calculator {
   }
 }
 
-
 const numberButtons = document.querySelectorAll('[data-number]')
 const operationButtons = document.querySelectorAll('[data-operation]')
 const equalsButton = document.querySelector('[data-equals]')
@@ -123,4 +122,40 @@ allClearButton.addEventListener('click', button => {
 deleteButton.addEventListener('click', button => {
   calculator.delete()
   calculator.updateDisplay()
-})
+}) 
+
+
+// Add event listener for keydown events on document
+document.addEventListener('keydown', (event) => {
+  const key = event.key;
+  
+  // If key is a number or decimal point, append it to the input
+  if (/^[0-9.]$/.test(key)) {
+    calculator.appendNumber(key);
+    calculator.updateDisplay();
+  }
+  
+  // If key is an operator, choose the operation
+  if (/^[+\-*/]$/.test(key)) {
+    calculator.chooseOperation(key);
+    calculator.updateDisplay();
+  }
+  
+  // If key is equal sign, compute the result
+  if (key === 'Enter' || key === '=') {
+    calculator.compute();
+    calculator.updateDisplay();
+  }
+  
+  // If key is Escape, clear the input
+  if (key === 'Escape') {
+    calculator.clear();
+    calculator.updateDisplay();
+  }
+  
+  // If key is Backspace, delete the last character
+  if (key === 'Backspace') {
+    calculator.delete();
+    calculator.updateDisplay();
+  }
+});
